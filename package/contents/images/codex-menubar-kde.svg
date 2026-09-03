@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1254" height="1254" viewBox="0 0 1254 1254" fill="none">
+  <defs>
+    <linearGradient id="outerBase" x1="245" y1="1020" x2="1045" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#005A9C"/>
+      <stop offset="0.28" stop-color="#007ACC"/>
+      <stop offset="0.52" stop-color="#1D99F3"/>
+      <stop offset="0.76" stop-color="#3DAEE9"/>
+      <stop offset="1" stop-color="#BDEEFF"/>
+    </linearGradient>
+    <linearGradient id="innerBase" x1="445" y1="840" x2="880" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0069C2"/>
+      <stop offset="0.30" stop-color="#168BD8"/>
+      <stop offset="0.58" stop-color="#3DAEE9"/>
+      <stop offset="0.82" stop-color="#72D5F4"/>
+      <stop offset="1" stop-color="#DDF8FF"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="250" y1="970" x2="1050" y2="170" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop offset="0.52" stop-color="#FFFFFF" stop-opacity="0.10"/>
+      <stop offset="0.82" stop-color="#FFFFFF" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.62"/>
+    </linearGradient>
+    <linearGradient id="plasmaSheen" x1="180" y1="820" x2="960" y2="240" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#58C7F3" stop-opacity="0"/>
+      <stop offset="0.48" stop-color="#83DDF8" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#E8FBFF" stop-opacity="0.38"/>
+    </linearGradient>
+    <filter id="blur18" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <filter id="blur8" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8"/>
+    </filter>
+    <mask id="maskOuter" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254" mask-type="alpha">
+      <path d="M 988.50 322.47 A 429.315 429.315 0 1 0 999.52 920.80" stroke="white" stroke-width="131" stroke-linecap="round" fill="none"/>
+    </mask>
+    <mask id="maskInner" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254" mask-type="alpha">
+      <path d="M 819.65 440.09 A 229.902 229.902 0 1 0 833.70 803.65" stroke="white" stroke-width="97" stroke-linecap="round" fill="none"/>
+    </mask>
+  </defs>
+
+  <g mask="url(#maskOuter)">
+    <path d="M 988.50 322.47 A 429.315 429.315 0 1 0 999.52 920.80" stroke="url(#outerBase)" stroke-width="131" stroke-linecap="round"/>
+    <path d="M 988.50 322.47 A 429.315 429.315 0 1 0 999.52 920.80" transform="translate(-4 31)" stroke="#004A80" stroke-opacity="0.34" stroke-width="106" stroke-linecap="round" filter="url(#blur18)"/>
+    <path d="M 988.50 322.47 A 429.315 429.315 0 1 0 999.52 920.80" transform="translate(3 -27)" stroke="url(#shine)" stroke-width="101" stroke-linecap="round" filter="url(#blur8)"/>
+    <path d="M 988.50 322.47 A 429.315 429.315 0 1 0 999.52 920.80" transform="translate(6 -45)" stroke="url(#plasmaSheen)" stroke-width="54" stroke-linecap="round"/>
+  </g>
+
+  <g mask="url(#maskInner)">
+    <path d="M 819.65 440.09 A 229.902 229.902 0 1 0 833.70 803.65" stroke="url(#innerBase)" stroke-width="97" stroke-linecap="round"/>
+    <path d="M 819.65 440.09 A 229.902 229.902 0 1 0 833.70 803.65" transform="translate(-2 24)" stroke="#0065A8" stroke-opacity="0.28" stroke-width="78" stroke-linecap="round" filter="url(#blur18)"/>
+    <path d="M 819.65 440.09 A 229.902 229.902 0 1 0 833.70 803.65" transform="translate(3 -19)" stroke="url(#shine)" stroke-width="74" stroke-linecap="round" filter="url(#blur8)"/>
+    <path d="M 819.65 440.09 A 229.902 229.902 0 1 0 833.70 803.65" transform="translate(4 -31)" stroke="url(#plasmaSheen)" stroke-width="38" stroke-linecap="round"/>
+  </g>
+</svg>

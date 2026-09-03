@@ -85,6 +85,11 @@ QString CodexBackend::errorString() const
     return m_errorString;
 }
 
+QString CodexBackend::codexExecutable() const
+{
+    return m_codexExecutable;
+}
+
 bool CodexBackend::hasFiveHour() const
 {
     return m_fiveHour.valid;
@@ -203,6 +208,7 @@ void CodexBackend::startProcess()
 {
     const QString executable = resolveCodexExecutable();
     if (executable.isEmpty()) {
+        m_codexExecutable.clear();
         setError(
             QStringLiteral(
                 "Codex CLI was not found. Install Codex and make sure `codex` "
@@ -213,6 +219,9 @@ void CodexBackend::startProcess()
         Q_EMIT stateChanged();
         return;
     }
+
+    m_codexExecutable = executable;
+    qInfo().noquote() << "Codex MenuBar KDE using Codex CLI:" << executable;
 
     m_stdoutBuffer.clear();
     m_initialized = false;
@@ -505,10 +514,19 @@ void CodexBackend::handleMessage(const QJsonObject &message)
         }
 
         const auto resultValue = message.value(QStringLiteral("result"));
-        if (resultValue.isObject()) {
+        if (!resultValue.isObject()) {
+            setError(QStringLiteral("Codex returned an empty rate-limit response."));
+        } else {
             const auto parsed = RateLimitParser::parse(resultValue.toObject());
             if (parsed.has_value()) {
                 applySummary(*parsed, false);
+                reportMissingWindowsIfNeeded(*parsed);
+            } else {
+                setError(
+                    QStringLiteral(
+                        "Codex returned rate-limit data in an unexpected format."
+                    )
+                );
             }
         }
 
@@ -530,6 +548,7 @@ void CodexBackend::handleMessage(const QJsonObject &message)
     const auto parsed = RateLimitParser::parse(paramsValue.toObject());
     if (parsed.has_value()) {
         applySummary(*parsed, true);
+        reportMissingWindowsIfNeeded(*parsed);
         m_loading = false;
         Q_EMIT stateChanged();
     }
@@ -560,4 +579,16 @@ void CodexBackend::applySummary(
 
     m_errorString.clear();
     Q_EMIT usageChanged();
+}
+
+void CodexBackend::reportMissingWindowsIfNeeded(const RateLimitSummary &summary)
+{
+    if (!summary.fiveHour.valid && !summary.weekly.valid) {
+        setError(
+            QStringLiteral(
+                "Connected to Codex, but the response did not contain a recognizable "
+                "5-hour or weekly quota window."
+            )
+        );
+    }
 }

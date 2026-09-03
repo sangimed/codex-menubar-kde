@@ -15,6 +15,7 @@ class CodexBackend : public QObject
     Q_PROPERTY(bool connected READ connected NOTIFY stateChanged)
     Q_PROPERTY(bool loading READ loading NOTIFY stateChanged)
     Q_PROPERTY(QString errorString READ errorString NOTIFY stateChanged)
+    Q_PROPERTY(QString codexExecutable READ codexExecutable NOTIFY stateChanged)
 
     Q_PROPERTY(bool hasFiveHour READ hasFiveHour NOTIFY usageChanged)
     Q_PROPERTY(double fiveHourUsedPercent READ fiveHourUsedPercent NOTIFY usageChanged)
@@ -46,6 +47,7 @@ public:
     bool connected() const;
     bool loading() const;
     QString errorString() const;
+    QString codexExecutable() const;
 
     bool hasFiveHour() const;
     double fiveHourUsedPercent() const;
@@ -95,6 +97,7 @@ private:
     void sendRateLimitRead();
     void handleMessage(const QJsonObject &message);
     void applySummary(const RateLimitSummary &summary, bool preserveMetadata);
+    void reportMissingWindowsIfNeeded(const RateLimitSummary &summary);
 
     QProcess m_process;
     QByteArray m_stdoutBuffer;
@@ -106,6 +109,7 @@ private:
     bool m_initialized = false;
     bool m_stopping = false;
     QString m_errorString;
+    QString m_codexExecutable;
 
     RateLimitWindowData m_fiveHour;
     RateLimitWindowData m_weekly;

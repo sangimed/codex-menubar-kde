@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(codex-menubar-kde VERSION 0.1.0 LANGUAGES CXX)
+project(codex-menubar-kde VERSION 0.1.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -47,6 +47,11 @@ install(
 install(
     FILES src/qmldir
     DESTINATION ${KDE_INSTALL_QMLDIR}/io/github/sangimed/codexmenubarkde
+)
+
+install(
+    FILES package/contents/images/codex-menubar-kde.svg
+    DESTINATION ${KDE_INSTALL_ICONDIR}/hicolor/scalable/apps
 )
 
 if(BUILD_TESTING)

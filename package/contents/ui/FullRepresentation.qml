@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -62,20 +61,38 @@ Item {
 
         RowLayout {
             Layout.fillWidth: true
-
-            Kirigami.Heading {
-                text: i18n("Codex usage")
-                level: 2
-                Layout.fillWidth: true
-            }
+            spacing: Kirigami.Units.smallSpacing
 
             Kirigami.Icon {
-                source: backend.connected ? "network-connect" : "network-disconnect"
-                implicitWidth: Kirigami.Units.iconSizes.smallMedium
+                source: Qt.resolvedUrl("../images/codex-menubar-kde.svg")
+                implicitWidth: Kirigami.Units.iconSizes.medium
                 implicitHeight: implicitWidth
-                Accessible.name: backend.connected
-                    ? i18n("Connected")
-                    : i18n("Disconnected")
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                Kirigami.Heading {
+                    text: i18n("Codex usage")
+                    level: 2
+                    Layout.fillWidth: true
+                }
+
+                PlasmaComponents.Label {
+                    Layout.fillWidth: true
+                    text: backend.connected
+                        ? i18n("Connected")
+                        : (backend.loading ? i18n("Connecting…") : i18n("Disconnected"))
+                    opacity: 0.7
+                }
+            }
+
+            PlasmaComponents.Button {
+                icon.name: "view-refresh"
+                text: backend.loading ? i18n("Refreshing…") : i18n("Refresh")
+                enabled: backend.connected && !backend.loading
+                onClicked: backend.refresh()
             }
         }
 
@@ -111,10 +128,8 @@ Item {
                 }
             }
 
-            QQC2.ProgressBar {
+            QuotaBar {
                 Layout.fillWidth: true
-                from: 0
-                to: 100
                 value: backend.hasFiveHour
                     ? full.shownPercent(backend.fiveHourUsedPercent)
                     : 0
@@ -152,10 +167,8 @@ Item {
                 }
             }
 
-            QQC2.ProgressBar {
+            QuotaBar {
                 Layout.fillWidth: true
-                from: 0
-                to: 100
                 value: backend.hasWeekly
                     ? full.shownPercent(backend.weeklyUsedPercent)
                     : 0
@@ -173,34 +186,31 @@ Item {
             Layout.fillWidth: true
         }
 
-        RowLayout {
+        ColumnLayout {
             Layout.fillWidth: true
+            spacing: Kirigami.Units.smallSpacing
 
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 0
-
-                PlasmaComponents.Label {
-                    visible: !!backend.planType
-                    text: i18n("Plan: %1", backend.planType)
-                }
-
-                PlasmaComponents.Label {
-                    visible: backend.creditsReported
-                    text: backend.hasCredits
-                        ? i18n(
-                            "Credits: %1",
-                            backend.unlimitedCredits ? "∞" : backend.creditsBalance
-                        )
-                        : i18n("Credits: unavailable")
-                }
+            PlasmaComponents.Label {
+                visible: !!backend.planType
+                text: i18n("Plan: %1", backend.planType)
             }
 
-            PlasmaComponents.Button {
-                text: backend.loading ? i18n("Refreshing…") : i18n("Refresh")
-                icon.name: "view-refresh"
-                enabled: backend.connected && !backend.loading
-                onClicked: backend.refresh()
+            PlasmaComponents.Label {
+                visible: backend.creditsReported
+                text: backend.hasCredits
+                    ? i18n(
+                        "Credits: %1",
+                        backend.unlimitedCredits ? "∞" : backend.creditsBalance
+                    )
+                    : i18n("Credits: unavailable")
+            }
+
+            PlasmaComponents.Label {
+                visible: !!backend.codexExecutable
+                Layout.fillWidth: true
+                text: i18n("Codex CLI: %1", backend.codexExecutable)
+                opacity: 0.6
+                elide: Text.ElideMiddle
             }
         }
     }

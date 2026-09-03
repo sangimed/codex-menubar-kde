@@ -41,24 +41,23 @@ RateLimitWindowData RateLimitParser::parseWindow(const QJsonValue &value)
     }
 
     const auto object = value.toObject();
-
-    if (!object.value(QStringLiteral("usedPercent")).isDouble()
-        || !object.value(QStringLiteral("windowDurationMins")).isDouble()
-        || !object.value(QStringLiteral("resetsAt")).isDouble()) {
+    const auto usedPercentValue = object.value(QStringLiteral("usedPercent"));
+    if (!usedPercentValue.isDouble()) {
         return {};
     }
 
+    const auto durationValue = object.value(QStringLiteral("windowDurationMins"));
+    const auto resetsAtValue = object.value(QStringLiteral("resetsAt"));
+
     return {
         .valid = true,
-        .usedPercent = qBound(
-            0.0,
-            object.value(QStringLiteral("usedPercent")).toDouble(),
-            100.0
-        ),
-        .windowDurationMinutes =
-            object.value(QStringLiteral("windowDurationMins")).toInt(),
-        .resetsAt =
-            static_cast<qint64>(object.value(QStringLiteral("resetsAt")).toDouble()),
+        .usedPercent = qBound(0.0, usedPercentValue.toDouble(), 100.0),
+        .windowDurationMinutes = durationValue.isDouble()
+            ? durationValue.toInt()
+            : 0,
+        .resetsAt = resetsAtValue.isDouble()
+            ? static_cast<qint64>(resetsAtValue.toDouble())
+            : 0,
     };
 }
 
@@ -107,6 +106,21 @@ RateLimitSummary RateLimitParser::parseSnapshot(
         } else if (window.windowDurationMinutes == WeeklyWindowMinutes) {
             summary.weekly = window;
         }
+    }
+
+    // Current Codex protocol allows windowDurationMins and resetsAt to be null.
+    // When the duration is absent, preserve the historical primary/secondary
+    // meaning instead of dropping otherwise valid usage percentages.
+    if (!summary.fiveHour.valid
+        && primary.valid
+        && primary.windowDurationMinutes == 0) {
+        summary.fiveHour = primary;
+    }
+
+    if (!summary.weekly.valid
+        && secondary.valid
+        && secondary.windowDurationMinutes == 0) {
+        summary.weekly = secondary;
     }
 
     const auto creditsValue = snapshot.value(QStringLiteral("credits"));

@@ -6,6 +6,8 @@ import io.github.sangimed.codexmenubarkde 1.0 as Codex
 PlasmoidItem {
     id: root
 
+    Plasmoid.icon: "codex-menubar-kde"
+
     toolTipMainText: i18n("Codex usage")
     toolTipSubText: backend.connected
         ? i18n("Connected to the local Codex app-server")

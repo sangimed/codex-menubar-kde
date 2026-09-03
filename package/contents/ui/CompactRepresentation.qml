@@ -12,8 +12,12 @@ Item {
     required property int displayMode
     required property bool showCredits
 
-    Layout.minimumWidth: content.implicitWidth + Kirigami.Units.smallSpacing * 2
-    Layout.preferredWidth: Layout.minimumWidth
+    implicitWidth: content.implicitWidth + Kirigami.Units.smallSpacing * 2
+    implicitHeight: Kirigami.Units.iconSizes.smallMedium
+
+    Layout.minimumWidth: implicitWidth
+    Layout.preferredWidth: implicitWidth
+    Layout.minimumHeight: implicitHeight
     Layout.fillHeight: true
 
     function shownPercent(usedPercent) {
@@ -21,10 +25,6 @@ Item {
     }
 
     function summaryText() {
-        if (displayMode === 3) {
-            return ""
-        }
-
         const parts = []
 
         if ((displayMode === 0 || displayMode === 1) && backend.hasFiveHour) {
@@ -56,8 +56,7 @@ Item {
         spacing: Kirigami.Units.smallSpacing
 
         Kirigami.Icon {
-            visible: compact.displayMode === 3
-            source: "applications-development"
+            source: Qt.resolvedUrl("../images/codex-menubar-kde.svg")
             implicitWidth: Kirigami.Units.iconSizes.smallMedium
             implicitHeight: implicitWidth
         }

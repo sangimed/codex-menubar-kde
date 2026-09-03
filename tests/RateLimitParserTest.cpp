@@ -10,6 +10,7 @@ class RateLimitParserTest final : public QObject
 private Q_SLOTS:
     void parsesTopLevelSnapshot();
     void prefersCodexBucket();
+    void parsesNullableWindowMetadata();
     void rejectsMissingRateLimits();
 };
 
@@ -98,6 +99,40 @@ void RateLimitParserTest::prefersCodexBucket()
     const auto additional = summary->additionalLimits.constFirst().toMap();
     QCOMPARE(additional.value(QStringLiteral("id")).toString(), QStringLiteral("codex-mini"));
     QCOMPARE(additional.value(QStringLiteral("name")).toString(), QStringLiteral("Codex Mini"));
+}
+
+void RateLimitParserTest::parsesNullableWindowMetadata()
+{
+    const QByteArray json = R"JSON(
+        {
+            "rateLimits": {
+                "primary": {
+                    "usedPercent": 37,
+                    "windowDurationMins": null,
+                    "resetsAt": null
+                },
+                "secondary": {
+                    "usedPercent": 64,
+                    "windowDurationMins": null,
+                    "resetsAt": null
+                }
+            }
+        }
+    )JSON";
+
+    const auto document = QJsonDocument::fromJson(json);
+    const auto summary = RateLimitParser::parse(document.object());
+
+    QVERIFY(summary.has_value());
+    QVERIFY(summary->fiveHour.valid);
+    QCOMPARE(summary->fiveHour.usedPercent, 37.0);
+    QCOMPARE(summary->fiveHour.windowDurationMinutes, 0);
+    QCOMPARE(summary->fiveHour.resetsAt, qint64(0));
+
+    QVERIFY(summary->weekly.valid);
+    QCOMPARE(summary->weekly.usedPercent, 64.0);
+    QCOMPARE(summary->weekly.windowDurationMinutes, 0);
+    QCOMPARE(summary->weekly.resetsAt, qint64(0));
 }
 
 void RateLimitParserTest::rejectsMissingRateLimits()
