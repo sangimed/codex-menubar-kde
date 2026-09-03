@@ -1,0 +1,20 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "sangimed"
+            }
+        ],
+        "Category": "System Information",
+        "Description": "Monitor OpenAI Codex usage limits from the KDE Plasma panel.",
+        "Icon": "applications-development",
+        "Id": "io.github.sangimed.codexmenubarkde",
+        "License": "MIT",
+        "Name": "Codex MenuBar KDE",
+        "Version": "0.1.0",
+        "Website": "https://github.com/sangimed/codex-menubar-kde",
+        "BugReportUrl": "https://github.com/sangimed/codex-menubar-kde/issues"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "KPackageStructure": "Plasma/Applet"
+}

@@ -1,0 +1,35 @@
+import QtQuick
+import org.kde.plasma.plasmoid
+
+import io.github.sangimed.codexmenubarkde 1.0 as Codex
+
+PlasmoidItem {
+    id: root
+
+    toolTipMainText: i18n("Codex usage")
+    toolTipSubText: backend.connected
+        ? i18n("Connected to the local Codex app-server")
+        : (backend.errorString || i18n("Connecting to Codex…"))
+
+    preferredRepresentation: compactRepresentation
+
+    Codex.CodexBackend {
+        id: backend
+        refreshIntervalSeconds: plasmoid.configuration.refreshInterval
+    }
+
+    compactRepresentation: CompactRepresentation {
+        backend: backend
+        percentageMode: plasmoid.configuration.percentageMode
+        displayMode: plasmoid.configuration.displayMode
+        showCredits: plasmoid.configuration.showCredits
+    }
+
+    fullRepresentation: FullRepresentation {
+        backend: backend
+        percentageMode: plasmoid.configuration.percentageMode
+    }
+
+    Component.onCompleted: backend.start()
+    Component.onDestruction: backend.stop()
+}

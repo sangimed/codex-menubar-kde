@@ -1,0 +1,5 @@
+/build/
+/cmake-build-*/
+CMakeUserPresets.json
+*.user
+.DS_Store
