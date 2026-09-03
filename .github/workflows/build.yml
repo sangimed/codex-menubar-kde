@@ -30,6 +30,9 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
 
+      - name: Trust checkout inside the Arch container
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Configure
         run: |
           cmake -S . -B build -G Ninja \
@@ -42,3 +45,11 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+      - name: Install smoke test
+        run: |
+          rm -rf stage
+          DESTDIR="$GITHUB_WORKSPACE/stage" cmake --install build
+          test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/metadata.json
+          test -f stage/usr/lib/qt6/qml/io/github/sangimed/codexmenubarkde/libcodexmenubarkdeplugin.so
+          test -f stage/usr/lib/qt6/qml/io/github/sangimed/codexmenubarkde/qmldir
