@@ -15,19 +15,20 @@ PlasmoidItem {
 
     Codex.CodexBackend {
         id: backend
-        refreshIntervalSeconds: plasmoid.configuration.refreshInterval
+        refreshIntervalSeconds: Plasmoid.configuration.refreshInterval
     }
 
     compactRepresentation: CompactRepresentation {
         backend: backend
-        percentageMode: plasmoid.configuration.percentageMode
-        displayMode: plasmoid.configuration.displayMode
-        showCredits: plasmoid.configuration.showCredits
+        plasmoidItem: root
+        percentageMode: Plasmoid.configuration.percentageMode
+        displayMode: Plasmoid.configuration.displayMode
+        showCredits: Plasmoid.configuration.showCredits
     }
 
     fullRepresentation: FullRepresentation {
         backend: backend
-        percentageMode: plasmoid.configuration.percentageMode
+        percentageMode: Plasmoid.configuration.percentageMode
     }
 
     Component.onCompleted: backend.start()

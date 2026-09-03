@@ -2,12 +2,12 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
-import org.kde.plasma.plasmoid
 
 Item {
     id: compact
 
     required property var backend
+    required property var plasmoidItem
     required property int percentageMode
     required property int displayMode
     required property bool showCredits
@@ -73,6 +73,6 @@ Item {
         anchors.fill: parent
         acceptedButtons: Qt.LeftButton
         cursorShape: Qt.PointingHandCursor
-        onClicked: plasmoid.expanded = !plasmoid.expanded
+        onClicked: compact.plasmoidItem.expanded = !compact.plasmoidItem.expanded
     }
 }
