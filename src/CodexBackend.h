@@ -8,7 +8,7 @@
 #include <QProcessEnvironment>
 #include <QTimer>
 
-class CodexBackend final : public QObject
+class CodexBackend : public QObject
 {
     Q_OBJECT
 
