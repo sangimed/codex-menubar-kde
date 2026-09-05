@@ -1,17 +1,18 @@
 name: Publish AUR
 
 on:
-  workflow_run:
-    workflows: [Release]
-    types: [completed]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish to AUR, for example v0.2.0
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   publish:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     container: archlinux:latest
 
@@ -24,7 +25,7 @@ jobs:
       - name: Check out released revision
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+          ref: ${{ inputs.tag }}
 
       - name: Trust checkout inside the Arch container
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -40,6 +41,7 @@ jobs:
           SRCINFO_VERSION="$(sed -nE 's/^\s*pkgver = ([0-9.]+)$/\1/p' packaging/aur/.SRCINFO | head -n1)"
 
           test -n "$VERSION"
+          test "${{ inputs.tag }}" = "v${VERSION}"
           test "$VERSION" = "$METADATA_VERSION"
           test "$VERSION" = "$PKGBUILD_VERSION"
           test "$VERSION" = "$SRCINFO_VERSION"
