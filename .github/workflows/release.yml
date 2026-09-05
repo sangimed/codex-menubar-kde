@@ -78,6 +78,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
 
           useradd --create-home builder
           install -d -o builder -g builder /tmp/codex-menubar-kde-package
@@ -89,8 +90,8 @@ jobs:
             makepkg --cleanbuild --noconfirm
           '
 
-          PACKAGE="$(find /tmp/codex-menubar-kde-package -maxdepth 1 -type f -name 'codex-menubar-kde-*.pkg.tar.zst' -print -quit)"
-          test -n "$PACKAGE"
+          PACKAGE="/tmp/codex-menubar-kde-package/codex-menubar-kde-${VERSION}-1-x86_64.pkg.tar.zst"
+          test -f "$PACKAGE"
 
           PACKAGE_NAME="$(basename "$PACKAGE")"
           cp "$PACKAGE" "$GITHUB_WORKSPACE/$PACKAGE_NAME"
