@@ -128,7 +128,7 @@ plasmoidviewer -a io.github.sangimed.codexmenubarkde
 
 ## Packaging and releases
 
-A release-oriented `PKGBUILD` and `.SRCINFO` live under `packaging/aur/`. Matching `v*` tags trigger both the GitHub release workflow and the AUR publishing workflow.
+A release-oriented `PKGBUILD` and `.SRCINFO` live under `packaging/aur/`. Matching `v*` tags publish a GitHub release; once that release workflow succeeds, the matching AUR package is published automatically.
 
 See [`packaging/README.md`](packaging/README.md) for the complete release and AUR flow.
 
