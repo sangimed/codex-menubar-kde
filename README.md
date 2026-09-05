@@ -48,7 +48,41 @@ The actual widget uses the Codex dual-arc logo rather than the text symbol shown
 - Extra CMake Modules (ECM)
 - Plasma development files for source builds
 
-### CachyOS / Arch Linux build dependencies
+Codex must be available locally:
+
+```bash
+codex --version
+```
+
+If it is installed somewhere unusual, set `CODEX_EXECUTABLE` to the absolute path of the `codex` executable.
+
+## Install
+
+### Arch Linux / CachyOS via AUR
+
+Once the package has been published to the AUR, this is the recommended installation method on Arch-based distributions:
+
+```bash
+yay -S codex-menubar-kde
+```
+
+or:
+
+```bash
+paru -S codex-menubar-kde
+```
+
+Without an AUR helper:
+
+```bash
+git clone https://aur.archlinux.org/codex-menubar-kde.git
+cd codex-menubar-kde
+makepkg -si
+```
+
+### From source
+
+On CachyOS / Arch Linux, install the build dependencies first:
 
 ```bash
 sudo pacman -S --needed \
@@ -61,15 +95,7 @@ sudo pacman -S --needed \
   qt6-declarative
 ```
 
-Codex must also be available:
-
-```bash
-codex --version
-```
-
-If it is installed somewhere unusual, set `CODEX_EXECUTABLE` to the absolute path of the `codex` executable.
-
-## Install from source
+Then build and install:
 
 ```bash
 git clone https://github.com/sangimed/codex-menubar-kde.git
@@ -100,18 +126,11 @@ sudo pacman -S --needed plasma-sdk
 plasmoidviewer -a io.github.sangimed.codexmenubarkde
 ```
 
-## Arch / AUR packaging
+## Packaging and releases
 
-A release-oriented `PKGBUILD` and `.SRCINFO` live under `packaging/aur/`. They target the matching Git tag and are ready to be pushed to an AUR package repository once a release is validated.
+A release-oriented `PKGBUILD` and `.SRCINFO` live under `packaging/aur/`. Matching `v*` tags trigger both the GitHub release workflow and the AUR publishing workflow.
 
-After the matching tag exists, the package can be tested locally with:
-
-```bash
-cd packaging/aur
-makepkg -si
-```
-
-See [`packaging/README.md`](packaging/README.md) for the release and AUR flow.
+See [`packaging/README.md`](packaging/README.md) for the complete release and AUR flow.
 
 ## Configuration
 
@@ -195,7 +214,7 @@ Repository layout:
 - `src/` — native Codex process, parser, history and notification integration
 - `tests/` — parser and history tests
 - `packaging/` — Arch/AUR packaging assets
-- `.github/workflows/` — CI and tagged release automation
+- `.github/workflows/` — CI, tagged release and AUR publishing automation
 
 ## Troubleshooting
 
