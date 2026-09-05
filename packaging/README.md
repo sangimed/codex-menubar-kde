@@ -1,16 +1,59 @@
 # Packaging
 
+## Release overview
+
+Release tags are the source of truth. A tag such as `v0.2.0` must match the version in:
+
+- `CMakeLists.txt`
+- `package/metadata.json`
+- `aur/PKGBUILD`
+- `aur/.SRCINFO`
+
+The GitHub release and AUR publication are intentionally separate. This allows a version to be released on GitHub first and published to the AUR later without creating a new tag.
+
+## GitHub releases
+
+`.github/workflows/release.yml` runs for `v*` tags. It:
+
+1. verifies version consistency;
+2. builds and tests on Arch Linux;
+3. smoke-tests the installed Plasma layout;
+4. builds a native Arch package with the release `PKGBUILD`;
+5. generates `SHA256SUMS`;
+6. publishes the package and checksum as GitHub release assets.
+
+The resulting package is a normal pacman package, for example:
+
+```text
+codex-menubar-kde-0.2.0-1-x86_64.pkg.tar.zst
+```
+
+It can be installed directly with:
+
+```bash
+sudo pacman -U ./codex-menubar-kde-0.2.0-1-x86_64.pkg.tar.zst
+```
+
+To create a release after CI on `main` is green:
+
+```bash
+git tag -a v0.2.0 -m "Codex MenuBar KDE v0.2.0"
+git push origin v0.2.0
+```
+
 ## Arch Linux / AUR
 
 The `aur/` directory contains the files needed to publish `codex-menubar-kde` to the Arch User Repository.
 
-The package is tied to release tags (`v<version>`). Before publishing a new version:
+Before publishing a new version:
 
 1. Update the project version in `CMakeLists.txt`.
 2. Update `package/metadata.json`.
-3. Update `aur/PKGBUILD` and regenerate `aur/.SRCINFO` with `makepkg --printsrcinfo > .SRCINFO`.
-4. Push and verify CI.
-5. Create and push the matching Git tag, for example `v0.2.0`.
+3. Update `aur/PKGBUILD`.
+4. Regenerate `aur/.SRCINFO` with `makepkg --printsrcinfo > .SRCINFO`.
+5. Push and verify CI.
+6. Create and push the matching Git tag.
+7. Verify the GitHub release succeeded.
 
 To test the package locally after the matching tag exists:
 
@@ -43,17 +86,25 @@ gh secret set AUR_SSH_PRIVATE_KEY < ~/.ssh/aur
 
 Do not commit the private key to Git.
 
-### Automated publishing
+### Publish to AUR
 
-`.github/workflows/aur.yml` runs only after the `Release` workflow completes successfully, and can also be started manually. It checks out the exact revision that was released, verifies that CMake, Plasma metadata, `PKGBUILD`, and `.SRCINFO` all use the same version, then pushes `PKGBUILD` and `.SRCINFO` to:
+`.github/workflows/aur.yml` is started manually. Supply the already released tag to publish, for example:
+
+```text
+v0.2.0
+```
+
+The workflow checks out that exact tag, verifies version consistency, and pushes `PKGBUILD` and `.SRCINFO` to:
 
 ```text
 ssh://aur@aur.archlinux.org/codex-menubar-kde.git
 ```
 
+Keeping AUR publication manual means a temporary AUR account or service issue cannot make an otherwise valid GitHub release fail.
+
 The AUR only accepts package commits on its `master` branch; the workflow handles this automatically.
 
-For the first publication, the AUR repository may be empty. That is expected. Once the first push succeeds, users can install the package with an AUR helper such as:
+Once the first AUR push succeeds, users can install the package with:
 
 ```bash
 yay -S codex-menubar-kde
@@ -72,21 +123,3 @@ git clone https://aur.archlinux.org/codex-menubar-kde.git
 cd codex-menubar-kde
 makepkg -si
 ```
-
-## GitHub releases
-
-`.github/workflows/release.yml` runs for `v*` tags. It verifies that the tag matches CMake, Plasma metadata, `PKGBUILD`, and `.SRCINFO`, builds and tests on Arch Linux, stages the installation tree, creates an `arch-x86_64.tar.zst`, generates SHA-256 checksums, and publishes a GitHub release.
-
-The release chain is therefore:
-
-```text
-push v<version> tag
-        │
-        ▼
-GitHub Release workflow
-        │ success
-        ▼
-Publish AUR workflow
-```
-
-The AUR package is the preferred installation method on Arch-based distributions because upgrades can be tracked by AUR helpers and the resulting package is managed by pacman.
