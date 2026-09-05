@@ -45,7 +45,7 @@ Do not commit the private key to Git.
 
 ### Automated publishing
 
-`.github/workflows/aur.yml` runs on `v*` tag pushes and can also be started manually. It verifies that CMake, Plasma metadata, `PKGBUILD`, and `.SRCINFO` all use the same version, then pushes `PKGBUILD` and `.SRCINFO` to:
+`.github/workflows/aur.yml` runs only after the `Release` workflow completes successfully, and can also be started manually. It checks out the exact revision that was released, verifies that CMake, Plasma metadata, `PKGBUILD`, and `.SRCINFO` all use the same version, then pushes `PKGBUILD` and `.SRCINFO` to:
 
 ```text
 ssh://aur@aur.archlinux.org/codex-menubar-kde.git
@@ -75,11 +75,18 @@ makepkg -si
 
 ## GitHub releases
 
-`.github/workflows/release.yml` runs for `v*` tags. It verifies that the tag matches CMake, Plasma metadata, and the AUR package version, builds and tests on Arch Linux, stages the installation tree, creates an `arch-x86_64.tar.zst`, generates SHA-256 checksums, and publishes a GitHub release.
+`.github/workflows/release.yml` runs for `v*` tags. It verifies that the tag matches CMake, Plasma metadata, `PKGBUILD`, and `.SRCINFO`, builds and tests on Arch Linux, stages the installation tree, creates an `arch-x86_64.tar.zst`, generates SHA-256 checksums, and publishes a GitHub release.
 
-A tag therefore starts two independent workflows:
+The release chain is therefore:
 
-- `Release` publishes the GitHub release and release assets.
-- `Publish AUR` publishes the matching AUR package metadata.
+```text
+push v<version> tag
+        │
+        ▼
+GitHub Release workflow
+        │ success
+        ▼
+Publish AUR workflow
+```
 
 The AUR package is the preferred installation method on Arch-based distributions because upgrades can be tracked by AUR helpers and the resulting package is managed by pacman.
