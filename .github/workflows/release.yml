@@ -74,22 +74,36 @@ jobs:
           test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/metadata.json
           test -f stage/usr/lib/qt6/qml/io/github/sangimed/codexmenubarkde/libcodexmenubarkdeplugin.so
 
-      - name: Package
+      - name: Build native Arch package
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          ARCHIVE="codex-menubar-kde-${VERSION}-arch-x86_64.tar.zst"
-          tar --zstd -C stage -cf "$ARCHIVE" usr
-          sha256sum "$ARCHIVE" > SHA256SUMS
-          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+
+          useradd --create-home builder
+          install -d -o builder -g builder /tmp/codex-menubar-kde-package
+          cp packaging/aur/PKGBUILD packaging/aur/.SRCINFO /tmp/codex-menubar-kde-package/
+          chown -R builder:builder /tmp/codex-menubar-kde-package
+
+          runuser -u builder -- bash -lc '
+            cd /tmp/codex-menubar-kde-package
+            makepkg --cleanbuild --noconfirm
+          '
+
+          PACKAGE="$(find /tmp/codex-menubar-kde-package -maxdepth 1 -type f -name 'codex-menubar-kde-*.pkg.tar.zst' -print -quit)"
+          test -n "$PACKAGE"
+
+          PACKAGE_NAME="$(basename "$PACKAGE")"
+          cp "$PACKAGE" "$GITHUB_WORKSPACE/$PACKAGE_NAME"
+          cd "$GITHUB_WORKSPACE"
+          sha256sum "$PACKAGE_NAME" > SHA256SUMS
+          echo "PACKAGE_NAME=$PACKAGE_NAME" >> "$GITHUB_ENV"
 
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            "$ARCHIVE" \
+            "$PACKAGE_NAME" \
             SHA256SUMS \
             --title "Codex MenuBar KDE ${GITHUB_REF_NAME#v}" \
             --generate-notes
