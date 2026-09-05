@@ -1,10 +1,12 @@
-# Codex MenuBar KDE
-
 <p align="center">
   <img src="package/contents/images/codex-menubar-kde.svg" alt="Codex MenuBar KDE logo" width="180" />
 </p>
 
-A native KDE Plasma 6 widget for monitoring OpenAI Codex usage limits directly from the panel.
+<h1 align="center">Codex MenuBar KDE</h1>
+
+<p align="center">
+  A native KDE Plasma 6 widget for monitoring OpenAI Codex usage limits directly from the panel.
+</p>
 
 ## Features
 
