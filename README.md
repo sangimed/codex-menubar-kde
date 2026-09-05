@@ -58,6 +58,22 @@ If it is installed somewhere unusual, set `CODEX_EXECUTABLE` to the absolute pat
 
 ## Install
 
+### Arch Linux / CachyOS from a GitHub release
+
+Tagged releases include a native Arch package that is managed by `pacman`.
+
+With the GitHub CLI:
+
+```bash
+gh release download v0.2.0 \
+  --repo sangimed/codex-menubar-kde \
+  --pattern '*.pkg.tar.zst'
+
+sudo pacman -U ./codex-menubar-kde-0.2.0-1-x86_64.pkg.tar.zst
+```
+
+After installation, enter Plasma edit mode, choose **Add Widgets…**, search for **Codex MenuBar KDE**, and add it to your panel.
+
 ### Arch Linux / CachyOS via AUR
 
 Once the package has been published to the AUR, this is the recommended installation method on Arch-based distributions:
@@ -111,8 +127,6 @@ ctest --test-dir build --output-on-failure
 sudo cmake --install build
 ```
 
-After installation, enter Plasma edit mode, choose **Add Widgets…**, search for **Codex MenuBar KDE**, and add it to your panel.
-
 When updating a running native widget, restart Plasma so the C++ plugin is reloaded:
 
 ```bash
@@ -128,7 +142,7 @@ plasmoidviewer -a io.github.sangimed.codexmenubarkde
 
 ## Packaging and releases
 
-A release-oriented `PKGBUILD` and `.SRCINFO` live under `packaging/aur/`. Matching `v*` tags publish a GitHub release; once that release workflow succeeds, the matching AUR package is published automatically.
+A release-oriented `PKGBUILD` and `.SRCINFO` live under `packaging/aur/`. Matching `v*` tags build, test, and publish a GitHub release containing a native Arch `*.pkg.tar.zst` package. AUR publication is a separate manual workflow so an already released version can be published later without creating another tag.
 
 See [`packaging/README.md`](packaging/README.md) for the complete release and AUR flow.
 
