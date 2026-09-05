@@ -1,8 +1,9 @@
 name: Publish AUR
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
@@ -41,7 +42,7 @@ jobs:
           test "$VERSION" = "$SRCINFO_VERSION"
           bash -n packaging/aur/PKGBUILD
 
-          if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
+          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
             test "${GITHUB_REF_NAME}" = "v${VERSION}"
           fi
 
