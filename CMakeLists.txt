@@ -59,6 +59,11 @@ install(
     DESTINATION ${KDE_INSTALL_ICONDIR}/hicolor/scalable/apps
 )
 
+install(
+    FILES LICENSE
+    DESTINATION ${KDE_INSTALL_DATADIR}/licenses/${PROJECT_NAME}
+)
+
 if(BUILD_TESTING)
     find_package(Qt6 6.6 REQUIRED COMPONENTS Test)
 
