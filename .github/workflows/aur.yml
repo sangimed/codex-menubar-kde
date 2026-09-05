@@ -1,0 +1,98 @@
+name: Publish AUR
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --needed --noconfirm git openssh python
+
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Trust checkout inside the Arch container
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Verify package metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="$(sed -nE 's/^project\(codex-menubar-kde VERSION ([0-9.]+) LANGUAGES CXX\)$/\1/p' CMakeLists.txt)"
+          METADATA_VERSION="$(python -c 'import json; print(json.load(open("package/metadata.json"))["KPlugin"]["Version"])')"
+          PKGBUILD_VERSION="$(sed -nE 's/^pkgver=([0-9.]+)$/\1/p' packaging/aur/PKGBUILD)"
+          SRCINFO_VERSION="$(sed -nE 's/^\s*pkgver = ([0-9.]+)$/\1/p' packaging/aur/.SRCINFO | head -n1)"
+
+          test -n "$VERSION"
+          test "$VERSION" = "$METADATA_VERSION"
+          test "$VERSION" = "$PKGBUILD_VERSION"
+          test "$VERSION" = "$SRCINFO_VERSION"
+          bash -n packaging/aur/PKGBUILD
+
+          if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
+            test "${GITHUB_REF_NAME}" = "v${VERSION}"
+          fi
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Configure AUR SSH access
+        shell: bash
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${AUR_SSH_PRIVATE_KEY:-}" ]]; then
+            echo "AUR_SSH_PRIVATE_KEY is not configured." >&2
+            echo "Add the private key as a GitHub Actions secret before publishing to AUR." >&2
+            exit 1
+          fi
+
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H aur.archlinux.org >> ~/.ssh/known_hosts
+
+          cat > ~/.ssh/config <<'EOF'
+          Host aur.archlinux.org
+            HostName aur.archlinux.org
+            User aur
+            IdentityFile ~/.ssh/id_ed25519
+            IdentitiesOnly yes
+          EOF
+          chmod 600 ~/.ssh/config
+
+      - name: Publish package metadata to AUR
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git clone ssh://aur@aur.archlinux.org/codex-menubar-kde.git aur-repo
+          git -C aur-repo checkout -B master
+
+          cp packaging/aur/PKGBUILD aur-repo/PKGBUILD
+          cp packaging/aur/.SRCINFO aur-repo/.SRCINFO
+
+          git -C aur-repo config user.name "Codex MenuBar KDE Release Bot"
+          git -C aur-repo config user.email "noreply@github.com"
+          git -C aur-repo add PKGBUILD .SRCINFO
+
+          if git -C aur-repo diff --cached --quiet; then
+            echo "AUR package is already up to date."
+            exit 0
+          fi
+
+          git -C aur-repo commit -m "Update to ${VERSION}"
+          git -C aur-repo push origin master
