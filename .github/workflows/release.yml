@@ -44,11 +44,14 @@ jobs:
           CMAKE_VERSION="$(sed -nE 's/^project\(codex-menubar-kde VERSION ([0-9.]+) LANGUAGES CXX\)$/\1/p' CMakeLists.txt)"
           METADATA_VERSION="$(python -c 'import json; print(json.load(open("package/metadata.json"))["KPlugin"]["Version"])')"
           PKGBUILD_VERSION="$(sed -nE 's/^pkgver=([0-9.]+)$/\1/p' packaging/aur/PKGBUILD)"
+          SRCINFO_VERSION="$(sed -nE 's/^\s*pkgver = ([0-9.]+)$/\1/p' packaging/aur/.SRCINFO | head -n1)"
 
           test -n "$CMAKE_VERSION"
           test "$VERSION" = "$CMAKE_VERSION"
           test "$VERSION" = "$METADATA_VERSION"
           test "$VERSION" = "$PKGBUILD_VERSION"
+          test "$VERSION" = "$SRCINFO_VERSION"
+          bash -n packaging/aur/PKGBUILD
 
       - name: Configure
         run: |
@@ -67,6 +70,9 @@ jobs:
         run: |
           rm -rf stage
           DESTDIR="$GITHUB_WORKSPACE/stage" cmake --install build
+          test -f stage/usr/share/licenses/codex-menubar-kde/LICENSE
+          test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/metadata.json
+          test -f stage/usr/lib/qt6/qml/io/github/sangimed/codexmenubarkde/libcodexmenubarkdeplugin.so
 
       - name: Package
         shell: bash
