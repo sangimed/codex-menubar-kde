@@ -18,6 +18,8 @@ PlasmoidItem {
     Codex.CodexBackend {
         id: codexBackend
         refreshIntervalSeconds: Plasmoid.configuration.refreshInterval
+        notificationsEnabled: Plasmoid.configuration.notificationsEnabled
+        notificationThreshold: Plasmoid.configuration.notificationThreshold
     }
 
     compactRepresentation: CompactRepresentation {

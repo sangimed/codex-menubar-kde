@@ -1,20 +1,20 @@
-name: Build
+name: Release
 
 on:
   push:
-    branches: [main]
-  pull_request:
+    tags:
+      - 'v*'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  build-and-test:
+  release:
     runs-on: ubuntu-latest
     container: archlinux:latest
 
     steps:
-      - name: Install build dependencies
+      - name: Install build and release dependencies
         run: |
           pacman -Syu --noconfirm
           pacman -S --needed --noconfirm \
@@ -22,11 +22,13 @@ jobs:
             cmake \
             extra-cmake-modules \
             git \
+            github-cli \
             libplasma \
             ninja \
             python \
             qt6-base \
-            qt6-declarative
+            qt6-declarative \
+            zstd
 
       - name: Check out repository
         uses: actions/checkout@v5
@@ -34,18 +36,19 @@ jobs:
       - name: Trust checkout inside the Arch container
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      - name: Verify version metadata
+      - name: Verify release version
         shell: bash
         run: |
           set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
           CMAKE_VERSION="$(sed -nE 's/^project\(codex-menubar-kde VERSION ([0-9.]+) LANGUAGES CXX\)$/\1/p' CMakeLists.txt)"
           METADATA_VERSION="$(python -c 'import json; print(json.load(open("package/metadata.json"))["KPlugin"]["Version"])')"
           PKGBUILD_VERSION="$(sed -nE 's/^pkgver=([0-9.]+)$/\1/p' packaging/aur/PKGBUILD)"
 
           test -n "$CMAKE_VERSION"
-          test "$CMAKE_VERSION" = "$METADATA_VERSION"
-          test "$CMAKE_VERSION" = "$PKGBUILD_VERSION"
-          bash -n packaging/aur/PKGBUILD
+          test "$VERSION" = "$CMAKE_VERSION"
+          test "$VERSION" = "$METADATA_VERSION"
+          test "$VERSION" = "$PKGBUILD_VERSION"
 
       - name: Configure
         run: |
@@ -60,22 +63,27 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
-      - name: Install smoke test
+      - name: Stage installation
         run: |
           rm -rf stage
           DESTDIR="$GITHUB_WORKSPACE/stage" cmake --install build
-          test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/metadata.json
-          test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/contents/images/codex-menubar-kde.svg
-          test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/contents/ui/AdditionalLimitsSection.qml
-          test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/contents/ui/UsageHistorySection.qml
-          test -f stage/usr/share/icons/hicolor/scalable/apps/codex-menubar-kde.svg
-          test -f stage/usr/lib/qt6/qml/io/github/sangimed/codexmenubarkde/libcodexmenubarkdeplugin.so
-          test -f stage/usr/lib/qt6/qml/io/github/sangimed/codexmenubarkde/qmldir
 
-      - name: QML lint
+      - name: Package
         shell: bash
         run: |
           set -euo pipefail
-          qmllint \
-            -I "$GITHUB_WORKSPACE/stage/usr/lib/qt6/qml" \
-            package/contents/ui/*.qml
+          VERSION="${GITHUB_REF_NAME#v}"
+          ARCHIVE="codex-menubar-kde-${VERSION}-arch-x86_64.tar.zst"
+          tar --zstd -C stage -cf "$ARCHIVE" usr
+          sha256sum "$ARCHIVE" > SHA256SUMS
+          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "$ARCHIVE" \
+            SHA256SUMS \
+            --title "Codex MenuBar KDE ${GITHUB_REF_NAME#v}" \
+            --generate-notes

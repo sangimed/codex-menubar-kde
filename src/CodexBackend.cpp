@@ -150,6 +150,11 @@ QVariantList CodexBackend::additionalLimits() const
     return m_additionalLimits;
 }
 
+QVariantList CodexBackend::history() const
+{
+    return m_historyStore.entries();
+}
+
 int CodexBackend::refreshIntervalSeconds() const
 {
     return m_refreshIntervalSeconds;
@@ -165,6 +170,37 @@ void CodexBackend::setRefreshIntervalSeconds(int seconds)
     m_refreshIntervalSeconds = clamped;
     m_refreshTimer.setInterval(m_refreshIntervalSeconds * 1000);
     Q_EMIT refreshIntervalSecondsChanged();
+}
+
+bool CodexBackend::notificationsEnabled() const
+{
+    return m_notificationsEnabled;
+}
+
+void CodexBackend::setNotificationsEnabled(bool enabled)
+{
+    if (m_notificationsEnabled == enabled) {
+        return;
+    }
+
+    m_notificationsEnabled = enabled;
+    Q_EMIT notificationSettingsChanged();
+}
+
+int CodexBackend::notificationThreshold() const
+{
+    return m_notificationThreshold;
+}
+
+void CodexBackend::setNotificationThreshold(int threshold)
+{
+    const int clamped = qBound(1, threshold, 99);
+    if (m_notificationThreshold == clamped) {
+        return;
+    }
+
+    m_notificationThreshold = clamped;
+    Q_EMIT notificationSettingsChanged();
 }
 
 void CodexBackend::start()
@@ -186,6 +222,7 @@ void CodexBackend::stop()
 
     m_initialized = false;
     m_connected = false;
+    m_loading = false;
     Q_EMIT stateChanged();
 
     if (m_process.state() != QProcess::NotRunning) {
@@ -202,6 +239,13 @@ void CodexBackend::refresh()
     m_loading = true;
     Q_EMIT stateChanged();
     sendRateLimitRead();
+}
+
+void CodexBackend::clearHistory()
+{
+    if (m_historyStore.clear()) {
+        Q_EMIT historyChanged();
+    }
 }
 
 void CodexBackend::startProcess()
@@ -287,6 +331,7 @@ void CodexBackend::handleFinished(
     m_refreshTimer.stop();
     m_initialized = false;
     m_connected = false;
+    m_loading = false;
 
     if (!m_stopping) {
         setError(
@@ -520,7 +565,7 @@ void CodexBackend::handleMessage(const QJsonObject &message)
             const auto parsed = RateLimitParser::parse(resultValue.toObject());
             if (parsed.has_value()) {
                 applySummary(*parsed, false);
-                reportMissingWindowsIfNeeded(*parsed);
+                reportMissingWindowsIfNeeded();
             } else {
                 setError(
                     QStringLiteral(
@@ -548,7 +593,7 @@ void CodexBackend::handleMessage(const QJsonObject &message)
     const auto parsed = RateLimitParser::parse(paramsValue.toObject());
     if (parsed.has_value()) {
         applySummary(*parsed, true);
-        reportMissingWindowsIfNeeded(*parsed);
+        reportMissingWindowsIfNeeded();
         m_loading = false;
         Q_EMIT stateChanged();
     }
@@ -559,8 +604,15 @@ void CodexBackend::applySummary(
     bool preserveMetadata
 )
 {
-    m_fiveHour = summary.fiveHour;
-    m_weekly = summary.weekly;
+    const RateLimitWindowData previousFiveHour = m_fiveHour;
+    const RateLimitWindowData previousWeekly = m_weekly;
+
+    if (!preserveMetadata || summary.fiveHour.valid) {
+        m_fiveHour = summary.fiveHour;
+    }
+    if (!preserveMetadata || summary.weekly.valid) {
+        m_weekly = summary.weekly;
+    }
 
     if (!preserveMetadata || summary.creditsReported) {
         m_creditsReported = summary.creditsReported;
@@ -577,13 +629,38 @@ void CodexBackend::applySummary(
         m_additionalLimits = summary.additionalLimits;
     }
 
+    if (m_notificationsEnabled) {
+        m_notificationManager.notifyThresholdCrossings(
+            previousFiveHour,
+            m_fiveHour,
+            previousWeekly,
+            m_weekly,
+            m_notificationThreshold
+        );
+    }
+
+    QString creditsForHistory;
+    if (m_creditsReported && m_hasCredits) {
+        creditsForHistory = m_unlimitedCredits
+            ? QStringLiteral("∞")
+            : m_creditsBalance;
+    }
+
+    if (m_historyStore.record(
+            m_fiveHour,
+            m_weekly,
+            creditsForHistory
+        )) {
+        Q_EMIT historyChanged();
+    }
+
     m_errorString.clear();
     Q_EMIT usageChanged();
 }
 
-void CodexBackend::reportMissingWindowsIfNeeded(const RateLimitSummary &summary)
+void CodexBackend::reportMissingWindowsIfNeeded()
 {
-    if (!summary.fiveHour.valid && !summary.weekly.valid) {
+    if (!m_fiveHour.valid && !m_weekly.valid) {
         setError(
             QStringLiteral(
                 "Connected to Codex, but the response did not contain a recognizable "

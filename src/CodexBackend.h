@@ -1,6 +1,8 @@
 #pragma once
 
 #include "RateLimitParser.h"
+#include "UsageHistoryStore.h"
+#include "UsageNotificationManager.h"
 
 #include <QJsonObject>
 #include <QObject>
@@ -32,12 +34,25 @@ class CodexBackend : public QObject
 
     Q_PROPERTY(QString planType READ planType NOTIFY usageChanged)
     Q_PROPERTY(QVariantList additionalLimits READ additionalLimits NOTIFY usageChanged)
+    Q_PROPERTY(QVariantList history READ history NOTIFY historyChanged)
 
     Q_PROPERTY(
         int refreshIntervalSeconds
         READ refreshIntervalSeconds
         WRITE setRefreshIntervalSeconds
         NOTIFY refreshIntervalSecondsChanged
+    )
+    Q_PROPERTY(
+        bool notificationsEnabled
+        READ notificationsEnabled
+        WRITE setNotificationsEnabled
+        NOTIFY notificationSettingsChanged
+    )
+    Q_PROPERTY(
+        int notificationThreshold
+        READ notificationThreshold
+        WRITE setNotificationThreshold
+        NOTIFY notificationSettingsChanged
     )
 
 public:
@@ -64,18 +79,27 @@ public:
 
     QString planType() const;
     QVariantList additionalLimits() const;
+    QVariantList history() const;
 
     int refreshIntervalSeconds() const;
     void setRefreshIntervalSeconds(int seconds);
 
+    bool notificationsEnabled() const;
+    void setNotificationsEnabled(bool enabled);
+    int notificationThreshold() const;
+    void setNotificationThreshold(int threshold);
+
     Q_INVOKABLE void start();
     Q_INVOKABLE void stop();
     Q_INVOKABLE void refresh();
+    Q_INVOKABLE void clearHistory();
 
 Q_SIGNALS:
     void stateChanged();
     void usageChanged();
+    void historyChanged();
     void refreshIntervalSecondsChanged();
+    void notificationSettingsChanged();
 
 private Q_SLOTS:
     void handleStarted();
@@ -97,7 +121,7 @@ private:
     void sendRateLimitRead();
     void handleMessage(const QJsonObject &message);
     void applySummary(const RateLimitSummary &summary, bool preserveMetadata);
-    void reportMissingWindowsIfNeeded(const RateLimitSummary &summary);
+    void reportMissingWindowsIfNeeded();
 
     QProcess m_process;
     QByteArray m_stdoutBuffer;
@@ -122,6 +146,11 @@ private:
     QVariantList m_additionalLimits;
 
     int m_refreshIntervalSeconds = 30;
+    bool m_notificationsEnabled = false;
+    int m_notificationThreshold = 20;
     int m_nextRequestId = 3;
     int m_reconnectAttempts = 0;
+
+    UsageHistoryStore m_historyStore;
+    UsageNotificationManager m_notificationManager;
 };

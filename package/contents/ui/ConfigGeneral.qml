@@ -10,6 +10,8 @@ KCM.SimpleKCM {
     property alias cfg_displayMode: displayMode.currentIndex
     property alias cfg_showCredits: showCredits.checked
     property alias cfg_refreshInterval: refreshInterval.value
+    property alias cfg_notificationsEnabled: notificationsEnabled.checked
+    property alias cfg_notificationThreshold: notificationThreshold.value
 
     Kirigami.FormLayout {
         QQC2.ComboBox {
@@ -47,6 +49,29 @@ KCM.SimpleKCM {
             editable: true
             textFromValue: function(value) {
                 return i18n("%1 seconds", value)
+            }
+        }
+
+        Kirigami.Separator {
+            Kirigami.FormData.isSection: true
+        }
+
+        QQC2.CheckBox {
+            id: notificationsEnabled
+            Kirigami.FormData.label: i18n("Notifications:")
+            text: i18n("Warn when remaining quota gets low")
+        }
+
+        QQC2.SpinBox {
+            id: notificationThreshold
+            Kirigami.FormData.label: i18n("Low quota threshold:")
+            from: 5
+            to: 95
+            stepSize: 5
+            editable: true
+            enabled: notificationsEnabled.checked
+            textFromValue: function(value) {
+                return i18n("%1% remaining", value)
             }
         }
     }

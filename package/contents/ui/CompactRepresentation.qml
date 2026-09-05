@@ -13,7 +13,10 @@ Item {
     required property bool showCredits
 
     implicitWidth: content.implicitWidth + Kirigami.Units.smallSpacing * 2
-    implicitHeight: Kirigami.Units.iconSizes.smallMedium
+    implicitHeight: Math.max(
+        Kirigami.Units.iconSizes.smallMedium,
+        content.implicitHeight
+    )
 
     Layout.minimumWidth: implicitWidth
     Layout.preferredWidth: implicitWidth
@@ -53,18 +56,21 @@ Item {
     RowLayout {
         id: content
         anchors.centerIn: parent
-        spacing: Kirigami.Units.smallSpacing
+        spacing: Math.max(3, Kirigami.Units.smallSpacing - 1)
 
         Kirigami.Icon {
             source: Qt.resolvedUrl("../images/codex-menubar-kde.svg")
-            implicitWidth: Kirigami.Units.iconSizes.smallMedium
+            implicitWidth: Kirigami.Units.iconSizes.small
             implicitHeight: implicitWidth
+            Layout.alignment: Qt.AlignVCenter
         }
 
         PlasmaComponents.Label {
             visible: compact.displayMode !== 3
             text: compact.summaryText()
             textFormat: Text.PlainText
+            verticalAlignment: Text.AlignVCenter
+            Layout.alignment: Qt.AlignVCenter
         }
     }
 

@@ -1,0 +1,18 @@
+pkgbase = codex-menubar-kde
+	pkgdesc = Native KDE Plasma 6 widget for monitoring OpenAI Codex usage limits
+	pkgver = 0.2.0
+	pkgrel = 1
+	url = https://github.com/sangimed/codex-menubar-kde
+	arch = x86_64
+	license = MIT
+	makedepends = cmake
+	makedepends = extra-cmake-modules
+	makedepends = git
+	makedepends = ninja
+	depends = libplasma
+	depends = qt6-base
+	depends = qt6-declarative
+	source = codex-menubar-kde::git+https://github.com/sangimed/codex-menubar-kde.git#tag=v0.2.0
+	sha256sums = SKIP
+
+pkgname = codex-menubar-kde
