@@ -1,9 +1,9 @@
 name: Publish AUR
 
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   publish:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     container: archlinux:latest
 
@@ -20,8 +21,10 @@ jobs:
           pacman -Syu --noconfirm
           pacman -S --needed --noconfirm git openssh python
 
-      - name: Check out repository
+      - name: Check out released revision
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
 
       - name: Trust checkout inside the Arch container
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -41,10 +44,6 @@ jobs:
           test "$VERSION" = "$PKGBUILD_VERSION"
           test "$VERSION" = "$SRCINFO_VERSION"
           bash -n packaging/aur/PKGBUILD
-
-          if [[ "${GITHUB_EVENT_NAME}" == "push" ]]; then
-            test "${GITHUB_REF_NAME}" = "v${VERSION}"
-          fi
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
