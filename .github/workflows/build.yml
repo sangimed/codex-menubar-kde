@@ -76,6 +76,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          qmllint \
+
+          QMLLINT="$(command -v qmllint || true)"
+          if [[ -z "$QMLLINT" && -x /usr/lib/qt6/bin/qmllint ]]; then
+            QMLLINT=/usr/lib/qt6/bin/qmllint
+          fi
+
+          test -n "$QMLLINT"
+          test -x "$QMLLINT"
+
+          "$QMLLINT" \
             -I "$GITHUB_WORKSPACE/stage/usr/lib/qt6/qml" \
             package/contents/ui/*.qml
