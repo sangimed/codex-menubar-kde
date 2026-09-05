@@ -41,10 +41,12 @@ jobs:
           CMAKE_VERSION="$(sed -nE 's/^project\(codex-menubar-kde VERSION ([0-9.]+) LANGUAGES CXX\)$/\1/p' CMakeLists.txt)"
           METADATA_VERSION="$(python -c 'import json; print(json.load(open("package/metadata.json"))["KPlugin"]["Version"])')"
           PKGBUILD_VERSION="$(sed -nE 's/^pkgver=([0-9.]+)$/\1/p' packaging/aur/PKGBUILD)"
+          SRCINFO_VERSION="$(sed -nE 's/^\s*pkgver = ([0-9.]+)$/\1/p' packaging/aur/.SRCINFO | head -n1)"
 
           test -n "$CMAKE_VERSION"
           test "$CMAKE_VERSION" = "$METADATA_VERSION"
           test "$CMAKE_VERSION" = "$PKGBUILD_VERSION"
+          test "$CMAKE_VERSION" = "$SRCINFO_VERSION"
           bash -n packaging/aur/PKGBUILD
 
       - name: Configure
@@ -69,6 +71,7 @@ jobs:
           test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/contents/ui/AdditionalLimitsSection.qml
           test -f stage/usr/share/plasma/plasmoids/io.github.sangimed.codexmenubarkde/contents/ui/UsageHistorySection.qml
           test -f stage/usr/share/icons/hicolor/scalable/apps/codex-menubar-kde.svg
+          test -f stage/usr/share/licenses/codex-menubar-kde/LICENSE
           test -f stage/usr/lib/qt6/qml/io/github/sangimed/codexmenubarkde/libcodexmenubarkdeplugin.so
           test -f stage/usr/lib/qt6/qml/io/github/sangimed/codexmenubarkde/qmldir
 
