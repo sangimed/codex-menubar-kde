@@ -9,19 +9,19 @@ PlasmoidItem {
     Plasmoid.icon: "codex-menubar-kde"
 
     toolTipMainText: i18n("Codex usage")
-    toolTipSubText: backend.connected
+    toolTipSubText: codexBackend.connected
         ? i18n("Connected to the local Codex app-server")
-        : (backend.errorString || i18n("Connecting to Codex…"))
+        : (codexBackend.errorString || i18n("Connecting to Codex…"))
 
     preferredRepresentation: compactRepresentation
 
     Codex.CodexBackend {
-        id: backend
+        id: codexBackend
         refreshIntervalSeconds: Plasmoid.configuration.refreshInterval
     }
 
     compactRepresentation: CompactRepresentation {
-        backend: backend
+        backend: codexBackend
         plasmoidItem: root
         percentageMode: Plasmoid.configuration.percentageMode
         displayMode: Plasmoid.configuration.displayMode
@@ -29,10 +29,10 @@ PlasmoidItem {
     }
 
     fullRepresentation: FullRepresentation {
-        backend: backend
+        backend: codexBackend
         percentageMode: Plasmoid.configuration.percentageMode
     }
 
-    Component.onCompleted: backend.start()
-    Component.onDestruction: backend.stop()
+    Component.onCompleted: codexBackend.start()
+    Component.onDestruction: codexBackend.stop()
 }
