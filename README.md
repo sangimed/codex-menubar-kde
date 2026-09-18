@@ -8,6 +8,14 @@
   A native KDE Plasma 6 widget for monitoring OpenAI Codex usage limits directly from the panel.
 </p>
 
+<p align="center">
+  <a href="https://github.com/sangimed/codex-menubar-kde/actions/workflows/build.yml"><img src="https://github.com/sangimed/codex-menubar-kde/actions/workflows/build.yml/badge.svg?branch=main" alt="CI status" /></a>
+  <a href="https://github.com/sangimed/codex-menubar-kde/actions/workflows/release.yml"><img src="https://github.com/sangimed/codex-menubar-kde/actions/workflows/release.yml/badge.svg" alt="Release workflow" /></a>
+  <a href="https://github.com/sangimed/codex-menubar-kde/releases/latest"><img src="https://img.shields.io/github/v/release/sangimed/codex-menubar-kde?display_name=tag&sort=semver" alt="Latest release" /></a>
+  <a href="https://github.com/sangimed/codex-menubar-kde/releases"><img src="https://img.shields.io/github/downloads/sangimed/codex-menubar-kde/total" alt="GitHub downloads" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/sangimed/codex-menubar-kde" alt="License" /></a>
+</p>
+
 ## Features
 
 - Native Plasma 6 panel widget
